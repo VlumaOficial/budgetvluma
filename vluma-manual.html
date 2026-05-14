@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Manual VLUMA · Gerador de Orçamentos</title>
+<style>
+:root{
+  --navy:#0b0f18;--navy2:#0f1520;--navy3:#151d2e;--navy4:#1c2640;
+  --green:#3ecf6e;--green-dark:#27a355;--green-dim:rgba(62,207,110,0.12);
+  --amber:#f5a623;--amber-dim:rgba(245,166,35,0.12);
+  --blue:#2d8ef5;--blue-dim:rgba(45,142,245,0.12);
+  --purple:#9b59b6;--purple-dim:rgba(155,89,182,0.12);
+  --red:#e05252;--red-dim:rgba(224,82,82,0.12);
+  --border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.13);
+  --text:#dce8f5;--text2:#6e8fad;--text3:#3d5a75;
+  --mono:ui-monospace,"Cascadia Code","Fira Mono",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --serif:Georgia,"Times New Roman",serif;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--navy);color:var(--text);line-height:1.7;font-size:15px}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:60px;background:var(--navy2);border-bottom:1px solid var(--border2);display:flex;align-items:center;justify-content:space-between;padding:0 2rem;z-index:200;box-shadow:0 2px 20px rgba(0,0,0,.4)}
+.brand{display:flex;align-items:center;gap:10px}
+.brand img{width:32px;height:32px;border-radius:50%;object-fit:contain}
+.brand-name{font-weight:800;font-size:18px;background:linear-gradient(135deg,var(--green),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.5px}
+.brand-tag{font-size:11px;color:var(--text3);border-left:1px solid var(--border2);padding-left:10px;margin-left:4px}
+.btn-print{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;border:none;border-radius:8px;padding:8px 18px;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:6px;transition:opacity .15s;letter-spacing:.01em}
+.btn-print:hover{opacity:.88}
+
+.layout{min-height:100vh;padding-top:60px;margin-left:250px}
+
+.nav{position:fixed;top:60px;left:0;width:250px;height:calc(100vh - 60px);background:var(--navy2);border-right:1px solid var(--border);overflow-y:auto;padding:1.25rem 0}
+.nav-group{padding:0 1rem;margin-bottom:1.25rem}
+.nav-group-title{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.14em;color:var(--text3);margin-bottom:.4rem;padding:0 .25rem}
+.nav-a{display:flex;align-items:center;gap:8px;padding:6px 10px;border-radius:7px;cursor:pointer;font-size:12.5px;color:var(--text2);transition:all .15s;text-decoration:none;margin-bottom:1px}
+.nav-a:hover{background:var(--green-dim);color:var(--green)}
+.nav-a.active{background:var(--green-dim);color:var(--green);font-weight:600}
+.nav-num{width:20px;height:20px;border-radius:5px;background:var(--navy3);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:var(--mono)}
+.nav-a.active .nav-num{background:var(--green);color:#fff}
+
+.content{padding:2.5rem 3.5rem;max-width:820px}
+
+.sec{margin-bottom:3.5rem;scroll-margin-top:80px}
+.sec-badge{display:inline-flex;align-items:center;gap:5px;background:var(--green-dim);border:1px solid rgba(62,207,110,.2);border-radius:20px;padding:3px 11px;font-size:10px;font-weight:700;color:var(--green);margin-bottom:.875rem;text-transform:uppercase;letter-spacing:.07em}
+.sec h2{font-size:1.65rem;font-weight:800;margin-bottom:.625rem;color:var(--text);letter-spacing:-.3px}
+.lead{color:var(--text2);font-size:14.5px;margin-bottom:1.75rem;max-width:620px}
+
+/* MOCKUP */
+.mkp{background:var(--navy2);border:1px solid var(--border2);border-radius:12px;overflow:hidden;margin-bottom:1.75rem;box-shadow:0 16px 48px rgba(0,0,0,.5)}
+.mkp-bar{background:var(--navy3);padding:9px 14px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border)}
+.mkp-dots{display:flex;gap:5px}
+.mkp-dot{width:10px;height:10px;border-radius:50%}
+.mkp-r{background:#ff5f57}.mkp-y{background:#febc2e}.mkp-g{background:#28c840}
+.mkp-url{flex:1;background:var(--navy4);border-radius:5px;padding:4px 10px;font-size:10px;color:var(--text3);font-family:var(--mono);text-align:center}
+.mkp-body{padding:1.1rem}
+
+/* MOCK UI COMPONENTS */
+.m-topbar{background:var(--navy3);border-radius:7px;padding:.55rem .875rem;display:flex;align-items:center;justify-content:space-between;margin-bottom:.625rem}
+.m-brand{font-weight:800;font-size:12px;background:linear-gradient(135deg,var(--green),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.m-btn{background:linear-gradient(135deg,var(--green-dark),var(--green));color:#fff;border:none;border-radius:5px;padding:4px 10px;font-size:10px;font-weight:700}
+.m-card{background:var(--navy3);border:1px solid var(--border2);border-radius:9px;padding:.875rem;margin-bottom:.625rem}
+.m-card.gl{border-left:3px solid var(--green)}
+.m-card.al{border-left:3px solid var(--amber)}
+.m-lbl{font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:var(--text3);margin-bottom:2px}
+.m-field{background:var(--navy4);border:1px solid var(--border2);border-radius:5px;padding:5px 8px;font-size:10px;color:var(--text2);margin-bottom:5px}
+.m-field.foc{border-color:var(--green);color:var(--text)}
+.m-g2{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.m-g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.m-spin{display:flex;align-items:center;gap:2px;justify-content:center}
+.m-sbtn{width:18px;height:22px;background:var(--navy4);border:1px solid var(--border2);border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text2)}
+.m-sinp{width:28px;background:var(--navy4);border:1px solid var(--border2);border-radius:4px;padding:3px;text-align:center;font-size:10px;color:var(--text)}
+.m-tbl{width:100%;border-collapse:collapse;font-size:10px}
+.m-tbl th{background:var(--navy4);color:var(--text3);padding:5px 7px;font-size:8px;text-transform:uppercase;letter-spacing:.05em}
+.m-tbl th:not(:nth-child(2)){text-align:right}
+.m-tbl th:nth-child(2){text-align:left}
+.m-tbl td{padding:5px 7px;border-bottom:1px solid var(--border);color:var(--text2);text-align:right}
+.m-tbl td:nth-child(2){text-align:left;color:var(--text)}
+.m-tbl td.gv{color:var(--green);font-weight:700}
+.m-tbl td.rv{color:var(--red)}
+.m-tbl td.av{color:var(--amber)}
+.m-sb{background:var(--navy3);border:1px solid var(--border);border-radius:9px;padding:.875rem}
+.m-cfgr{display:flex;align-items:center;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:10px}
+.m-cfgr:last-child{border-bottom:none}
+.m-cfglbl{color:var(--text2)}
+.m-cfgrhs{display:flex;align-items:center;gap:3px}
+.m-cfginp{width:32px;background:var(--navy4);border:1px solid var(--border2);border-radius:4px;padding:2px 4px;font-size:10px;color:var(--text);text-align:right;font-family:var(--mono)}
+.m-tog{width:24px;height:14px;background:var(--green);border-radius:7px;position:relative;flex-shrink:0}
+.m-tog::after{content:"";position:absolute;top:2px;right:2px;width:8px;height:8px;background:#fff;border-radius:50%}
+.m-tog-off{width:24px;height:14px;background:var(--navy4);border:1px solid var(--border2);border-radius:7px;position:relative;flex-shrink:0}
+.m-tog-off::after{content:"";position:absolute;top:2px;left:2px;width:8px;height:8px;background:var(--text3);border-radius:50%}
+.m-resr{display:flex;justify-content:space-between;font-size:10px;padding:3px 0;border-bottom:1px solid var(--border)}
+.m-resr:last-child{border-bottom:none}
+.m-totbox{background:var(--navy4);border-radius:7px;padding:.4rem .6rem;display:flex;justify-content:space-between;align-items:center;margin-top:.4rem}
+.m-vcinp{background:var(--navy4);border:1px solid var(--green);border-radius:6px;padding:.35rem .6rem;font-size:11px;font-weight:700;color:var(--text);font-family:var(--mono);display:flex;align-items:center;gap:4px;margin:.4rem 0}
+.m-ok{background:var(--green-dim);border:1px solid rgba(62,207,110,.25);border-radius:7px;padding:.4rem .7rem;display:flex;justify-content:space-between;font-size:10px}
+.m-bad{background:var(--red-dim);border:1px solid rgba(224,82,82,.25);border-radius:7px;padding:.4rem .7rem;display:flex;justify-content:space-between;font-size:10px}
+
+/* CALLOUTS */
+.cl{border-radius:9px;padding:.875rem 1rem;margin-bottom:1.25rem;display:flex;gap:11px;align-items:flex-start}
+.cl.info{background:var(--blue-dim);border:1px solid rgba(45,142,245,.2)}
+.cl.tip{background:var(--green-dim);border:1px solid rgba(62,207,110,.2)}
+.cl.warn{background:var(--amber-dim);border:1px solid rgba(245,166,35,.2)}
+.cl.calc{background:var(--purple-dim);border:1px solid rgba(155,89,182,.2)}
+.cl-icon{font-size:17px;flex-shrink:0;margin-top:1px}
+.cl-title{font-weight:700;font-size:12.5px;margin-bottom:2px}
+.cl.info .cl-title{color:var(--blue)}
+.cl.tip .cl-title{color:var(--green)}
+.cl.warn .cl-title{color:var(--amber)}
+.cl.calc .cl-title{color:var(--purple)}
+.cl-text{font-size:12.5px;color:var(--text2);line-height:1.55}
+
+/* STEPS */
+.steps{display:flex;flex-direction:column;gap:.625rem;margin-bottom:1.25rem}
+.step{display:flex;gap:12px;align-items:flex-start}
+.step-n{width:26px;height:26px;border-radius:7px;background:var(--green-dim);border:1px solid rgba(62,207,110,.25);display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--green);flex-shrink:0;margin-top:2px}
+.step-t{font-weight:700;font-size:13.5px;margin-bottom:1px}
+.step-d{font-size:12.5px;color:var(--text2)}
+
+/* FORMULA */
+.fml{background:var(--navy3);border:1px solid var(--border2);border-radius:9px;padding:1.1rem;margin-bottom:1.25rem;font-family:var(--mono);font-size:12.5px}
+.fml-title{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.625rem;font-family:var(--sans)}
+.fml-row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--border)}
+.fml-row:last-child{border-bottom:none;padding-top:7px;margin-top:3px;border-top:1px solid var(--border2)}
+.fml-lbl{color:var(--text2)}
+.fml-val{color:var(--green);font-weight:700}
+.fml-eq{color:var(--amber);font-size:11px}
+
+/* TAG */
+.tag{display:inline-flex;align-items:center;border-radius:4px;padding:1px 7px;font-size:10.5px;font-weight:700}
+.tg{background:var(--green-dim);color:var(--green)}
+.ta{background:var(--amber-dim);color:var(--amber)}
+.tb{background:var(--blue-dim);color:var(--blue)}
+.tp{background:var(--purple-dim);color:var(--purple)}
+.tr{background:var(--red-dim);color:var(--red)}
+
+/* TABLE */
+.rtbl{width:100%;border-collapse:collapse;font-size:12.5px;margin-bottom:1.25rem}
+.rtbl th{background:var(--navy3);color:var(--text3);font-size:9px;text-transform:uppercase;letter-spacing:.08em;padding:7px 11px;text-align:left;border-bottom:1px solid var(--border2)}
+.rtbl td{padding:9px 11px;border-bottom:1px solid var(--border);color:var(--text2);vertical-align:top}
+.rtbl td:first-child{color:var(--text);font-weight:600}
+.rtbl tr:last-child td{border-bottom:none}
+
+/* PDF PREVIEW */
+.pp{background:#fff;border-radius:9px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.5);margin-bottom:1.25rem}
+.pp-hd{background:#0d1b2e;padding:1rem 1.25rem;display:flex;justify-content:space-between;align-items:center}
+.pp-body{padding:1rem 1.25rem;background:#f8fafc}
+.pp-blocks{display:grid;grid-template-columns:1fr 1fr;gap:.625rem;margin-bottom:.875rem}
+.pp-block{background:#fff;border-radius:5px;padding:.625rem;border:1px solid #e2e8f0}
+.pp-tbl{width:100%;border-collapse:collapse;font-size:9px;margin-bottom:.875rem}
+.pp-tbl th{background:#0d1b2e;color:#fff;padding:5px 7px;text-align:right}
+.pp-tbl th:nth-child(2){text-align:left}
+.pp-tbl td{padding:5px 7px;border-bottom:1px solid #e2e8f0;color:#374151;text-align:right}
+.pp-tbl td:nth-child(2){text-align:left}
+.pp-tot{background:#0d1b2e;border-radius:5px;padding:.5rem .875rem;display:flex;justify-content:space-between;align-items:center;margin-left:auto;max-width:220px}
+.pp-ft{background:#0d1b2e;padding:.375rem 1.25rem;display:flex;justify-content:space-between;font-size:8px;color:#a0b4c8}
+
+/* DIVIDER */
+hr.div{border:none;border-top:1px solid var(--border);margin:2.5rem 0}
+
+/* PROGRESS */
+.prog{position:fixed;top:60px;left:0;height:2px;background:linear-gradient(90deg,var(--green),var(--amber));z-index:300;transition:width .2s}
+
+@media(max-width:860px){
+  .nav{display:none}
+  .layout{grid-template-columns:1fr}
+  .content{padding:1.75rem 1.25rem}
+}
+@media print{
+  .topbar,.nav,.prog{display:none!important}
+  .layout{grid-template-columns:1fr;padding-top:0}
+  .content{padding:1rem;max-width:100%}
+  body{background:#fff;color:#000}
+  .navy,.navy2,.navy3,.navy4{background:#f5f5f5!important}
+}
+</style>
+</head>
+<body>
+
+<div class="prog" id="prog"></div>
+
+<div class="topbar">
+  <a href="https://vluma.com.br" target="_blank" class="brand" style="text-decoration:none">
+    <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCADIAMgDASIAAhEBAxEB/8QAHAABAAICAwEAAAAAAAAAAAAAAAcIBQYCAwQB/8QAQhAAAQMCAgcEBwYEBQUBAAAAAQACAwQFBhEHEiExQVFhEyJxgRQVMkKRocEWI1JisdFTcoKiF0NEc5IIM2PC0rL/xAAbAQABBQEBAAAAAAAAAAAAAAAAAgMEBQYBB//EADURAAEDAgQCCQMEAQUAAAAAAAEAAgMEEQUSITEGQRMiUWFxgZGh8LHB0RQjMuEVM0JSovH/2gAMAwEAAhEDEQA/AKZIiIQiIiEIiIhCIiIQiLthp5pvYjJHM7AvZFbHb5JAOjQltY52wSS9o3WORZmO304IGq556n9llaTDFzqQDS2GunB3GOle/P4BKdHlF3EBJEmb+IutRRb19iMS5Z/ZG75c/Vsn/wArx1eGLnTAmqsNdABvMlK9n6hIHRu0Dx6pRLxu0rUUWZkt9OSRquYeh/deeW2HfHKD0cEswuCSJWlY5F2zU80PtxkDmNoXUmyCN0sG6IiLi6iIiEIiIhCIiIQiIiEIiIhCIiyFFQa2Uk4IHBv7pTWlxsElzg0XK81NTSznuDJvFx3LLW619pOyGCCSpqHnJjGtLi48g0Lf9HWjO74p1KqQG3Wr+O9m2Qco28fHd47lYDB+D7BhWmEdqo2iYjJ9TJk6V/i7gOgyHRVOI47S0BLG9d/ZyHifhUmmopanU9VqhHCmhrEt1aya5uis9O7blKNeUj+QbvMg9FJ1g0O4NtrWuq4ai6TDe6okIbn0a3IZeOazOLcf4ZwzrR3C4Nkqm/6WnGvL5jc3+ohRViLTjd6hzo7Hbaeij3CWc9rJ45bGj5qkE2N4rrH1GHs6o9dyrENw+j/l1j6/0pytdms1raG221UNHl/Bgaw/EBeyaohhbrTSxxjm9wH6qo12xxi66E+mYgr3NO9kcpjYf6WZBYCWSSV5fK9z3HeXHMp1nCE0nWmm18CfckIPEDW6Rs09FdD1va88vWVHny7dv7r0Q1EMzdaGWOQc2OB/RUkXOKSSJ4fFI5jhuc05FOO4MbbSb/r/AGkjiJ3Nnv8A0rmXSzWa6NLblaqGsz/jQNefiQtJv+h3BtyDn0kFRa5TudTy5tz6tdmMugyUEWnHGLrWQaPEFeGjcySUysH9L8wt7w7pyu9O5sd8ttPWx7jLAeyk8ctrT8kwcBxWi61NJcdgNvY6Jf8AlKOo0mZ6j77rG4r0NYltTXzWx0V4p27cohqSgfyHf5EnoouuFr7Od8M0ElNOw5PY5paWnkQVbjCOPsM4n1Y7fcBHVH/S1A1JfIbnf0krvxfhCwYqpzHdaJjpgMmVMfdlZ4O4jocx0TlPxLUU7+hxCPztY+mx8rJmXDIpBnpnfcKlNTTSwHvjNvBw3LpUuaRdGd3wtr1UY9Y2rP8A77G7Yxykbw8d3huUZ1tBq5yQDMcW/stRDJFUx9LA7M1VTs0bskgsVj0RF1KRERCEREQhEREIREWQtdLrETyDYPZH1SmtLjYJLnBouV226j1MpZR3vdbyU6aJ9FgmbFfMUQfdnJ9PQv2a3J0g5fl+PJcNCWj9kohxPe4A5mx1DA8b+Ujhy5Dz5KUMZ4pt2FbO64XB+s492GFp78ruQ+p4LM4zjMhf+iotXHQkb37B9yn6aFv+rKsje7va8P2t1bcqmKkpYhkM+PJrQN56BQPj7S3d706SjsZktdAcxrtP38o6uHsjoPiVqGMsU3XFV0Nbcpu63MQwNP3cTeQH6neVglNwjhuKlAkqBmf7D8nv9EmpxF8nVZoF9cS5xc4kknMk8V8RFqVXIiIhCIiIQiIiEL60lrg5pIIOYI4KS8A6W7vZnR0d8Ml0oBkNcnOeIdCfaHQ/FRmiiVdFBWMyTNuPp4JyKZ8TszDZXEsl3td/tba221MVXSygtOXza4HcehUQ6WdFjYWTXzC8HcGb6ihYPZ5ujHL8vw5KNcG4puuFboK22zHVcQJoHHuSt5Efod4Vl8F4pt2KrO24UD9VwybNC49+J3I/Q8Vhamjq+H5ungN4z8sfsVbCojrGZZBr82VPbjR6+csQ73vN5rFqw2m3R+2ITYnskADParadg3c5GjlzHnzUE3Sl1SZ4xsPtD6rXUlXFXwCeLzHYVAIMTsjlj0RE6loiIhCIiIQu6jgM84Z7o2uPRSlohweMTX4SVUZ9V0WT59myQ+7H58eg6haJZaOR4ihijL553ANaBtJOwBWuwJYYcM4ZpbZGGmUDXqHj35D7R+g6AKrx3ETQUuVh679u4cz85pm4c/XYLJXy60Fhs09xrXiGlpmZ5NG/gGtHM7AAqw41xLX4pvclxrXFrfZghB7sTODR9TxK2vThiw3i+epaSTOhoHkPyOySbcT4N3Dz5qOEjhvCBTRCokHXd7D8nn6InmL9OSIiLUqOiIiEItt0cYKqsXVzyZDTUEBHbz5Zkn8LeZ/T4A6krEaDPR/8PabsMu07aXt8vx62zP8Ap1VRcRYhLQUZki/kSBfsvfX2UKvndDDmbvsn+FODfROw9Eqe0yy7f0l2v45ez8lEmkfBVVhGujIkNTQTk9jPlkQRva7r+vxAsqtF05+jf4e1Pb5dp20XYZ/j1tuX9OssVgWOVgrWRyPLmvNiDrvzHZZVFFWzCYNcbgqu6Ii9SWkRERCEWcwViWvwte47jROLm+zPCT3ZWcQfoeBWDRNyxMmYY3i4O66CQbhW6sl1ob9ZoLjRvE1LUszycPItcOY2ghV60vYPGGb6X0sZ9V1uboOTD70flns6HoVktB+LHWe+epauTKhr3gMzOyObcD/VuPkphx3YYcTYZqrZIGiUjXp3n3JR7J+h6Erz6MvwDEcjj+276dviPm6lPkErNd1TqsgME5Z7p2tPRdKzt6pJGiWKWMsngcQ5pG0EbCFgltpG2OmyI3ZgiIiQlou2ki7aoYzgTt8F1LI2ZnekkPAZBLjbmcAkvNm3Up6CrILjiw3GZmcFuZ2gzGztDsZ8O8fIKXNJGIPs7hKrro36tS8djT/7jtx8hmfJYPQjbRb8Ex1Lm5S10rpnHjqjutHwGfmtN/6gbuai9UVnY77uli7WQA++/dn4AD/ksbM3/K430Z1YzTybv6lQBJd1goxcS5xc4kknMk8V8RF6CloiIhCIiIQi23RxjWqwjXPBjNTQTkdvBnkQfxN5H9fgRqSJippoqqIxSi7Sm5I2yNLXC4ViP8V8G+idv6XU9pln2Hoztfwz9n5qJNI+NarF1dGBGaaggJ7GDPMkne53X9PiTqSKpw/h2ioJeljBLuVze3hoFGgoIYHZm796IiK9U1EREIRERCF9aS1wc0kEHMEcFZzRxiD7RYSpK6R+tUsHY1H+43efMZHzVYlKH/T9dzBea2zvd93UxdrGD+Nm/LxB/tWb4nohUURkG7NfLn+fJcLsouvBp1sgtuLBcYWasFxZ2hyGztBsf8e6fMqIKuLsah7OAOzwVntN9tFfgmSpa3OWhlbMDx1T3XD55+SrbeWd6OQcRkUYHVGqw9pO7NPTb2sl08lysciIrJTEWZtLMqRpA2uJP0WGW1YUgE9xtdORmJZ4mkeLh+6djcG3ceQTM5s1WhsVK232WioAABT07I/g0BVzx7XG44zutVnrA1LmNP5W91vyAVkZ5RFC+U7mNLj5BVUke6SR0jzm5xJJ6lZHhBnSTTTO309ySfoqeifnLiuKIi3asEREQhEVhrDgyxXfRraaGqo42ulpGTCeNoEjHvbrFwd57jsUOY4whdMKV/ZVbO1pXk9hUsHckHLo7p+qpMPx2mrZnQDquBIseduY/ChwVsczyzYha4iIrtTEREQhERbFgfCF0xXX9jSM7KmYfv6l47kY5dXdP03pmeeOnjMkps0c0h72sbmcbBa6isNf8GWK0aNbrQ0lHG50VI+YzyNBke9jdYOLvLcNiryq/CsWixJr3RggNNtefemKaqbUAlo2RERWylIs5gGuNuxnaaoHICpaxx/K7un5ErBrlE90cjZGHJzSHA9QmpohLG6M8wR6rhFxZWmvtK24WSuoCAfSKd8fmWkBVNuzM6Qni0g/RW4hlEsLJBue0OHmqsYrgEFxulOBkIp5WgeDj+yxPCDzaaI9x+v9KFQS5nELVURFqVeItzwLl9o7Fnu9Lp//ANtWmLasKziC4WyoJyEU8TifBw/ZKtmje0cwVHqRdis3dyfVVXlv7B+X/EqrqtRNGJYXxnc9pafNVZkY6OR0bhk5pII6hZvhAZWyjw+6oMIfcPHguKIi2iuUREQhWS0O3Vl0wHQtDgZaMGmkHLV9n+0tWzXW30V0oJaG4U7KinlGT2PGzx6Hqq+6IMVDDmIuxq5NW31uUcxJ2Ru91/lnkeh6KxgIIzBzBXkfEFC+grnOboHHMD87D9llq6EwTEjY6hV40k6PK3DUj66h7SrtRPt5Zvh6P6fm/TjoiuBIxkkbo5GNexwIc1wzBB4EKGNJmjB9N2t3w1C58O101G3a5nMs5j8u8cOQ02BcUCa0FWbO5O5Hx7D381Y0WJB/Ul37VEyL7kc8stqljRlowfU9ld8SwuZBsdDRu2OfyL+Q/LvPHkdPiGIwUEXSzHwHM+CsZ6hkDczysBo30e1uJZGV1dr0lqB9vLJ83RnT836qfrVb6K1UEVDb6dlPTxDJjGDZ49T1K9EbGRRtjjY1jGgNa1oyAA3ABciQASTkAvKsWxmfEpLv0aNh83KzVVVvqHa7di0/TFdWWvAdc0uAlrAKaMc9b2v7Q5VtW7aXsVNxJiLsaSTWt9FnHCRukd7z/PLIdB1Wkr0ThvDnUVEA8dZ2p7uweivsPgMMOu51RERaBTkRFyiY6SRsbBm5xDQOpXFxWgtJPqqkz39gzP8A4hVtxzl9or7lu9LqMv8Am5WZhjEULIwdjGho8lVzFU4nuFzqAcxLPI4Hxcf3WG4VZaWZ/cqbCHZpHFasiItQtQizNpfnSNAO1pI+qwyyNmf3pIzxGYTsJs5Nyi7VbKyVYr7NRVwOfbwMk+LQVXrHVEbfjC6UuWQFQ57R+V3eHyIUt6GrkK3BsdM52clFI6I89U95p+By8lqWna1mG8Ul2Y3uVMfZSEfjbu+IP9qz2EM/SV74Tsbj01Hsslh7ugrHQnnf+vZRsiItctGiIiEIpp0K459JjiwzdpvvmDVopnH22j/LPUcOY2cs4WXJj3Rva9ji17Tm1wORB5hV2KYbFiMBik8j2FR6mnbOzK5XARRxom0gMvkLLPeJmsujBlHI7YKkD/35jjv5qR15BXUM1FMYZhYj37wsrNC+F5Y5a99jMOfaX7Qero/TN+Xua/49XdrdfPftWwoiZlnlmt0jibCwvyCQ57nWzG9kUT6ascimilw1aJvv3jVrJmn2Gn/LHU8eQ2cdmR0s6QGWOF9ntErX3SQZSSNOYpgf/fkOG/koGe5z3ue9xc5xzc4nMk81suGeHzIRV1A0/wBo7e893Z2+G9vh1DmIlkGnJcURF6Ir5EREIRZvAlEbhjC102WYNQ17h+VvePyBWEUk6CbWZrvWXZ7e5Tx9lGT+N2/4Af3KHXy9FTPd3fXRRayURQOf3KVr5Vigs1bXE5dhA+TzDSQqrXZ+VIR+IgfVWA0zXIUWDZKZrspK2RsQHHVHecfll5qu95f3o4xwGZVLgMHQ0z3/API/T/0qHgMZyF/afosciIrRaRF20kvY1DH8AdvgupF0GxuuEX0Uu6F7yLfic0Er8oa9moM93aDa36jzClHSBZPX2F6qiY3OoYO1p/527h5jMearbZquRrY5Y3lk0DgWuB2gjaCrMYMvkWIMP09wYQJCNSdg9yQbx9R0IUHEYS2RtSz4VjsbifTzNqWfCNvVVvcC0lrgQRsIPBfFvumHDRtd49b0seVHWuJfkNkcu8jz3/FaErqGUSsDxzV7TVDaiISN2KIiJ1PoiIhC5RPfFI2SN7mPYQ5rmnIgjcQVOeivSPHdmRWa+zNjuAybDO7Y2o5A8n/r4qCl9BIOY2FVmKYVBiUXRybjY8x85hRqmmZUNyu9VcFRnpU0jx2lstmsUrZLie7LO3a2n5gc3/p4qPxpNxL9l/UvbjtfY9NzPbdnl7OfP82/z2rSiSTmTmSsvhPCRimMlXYgHQcj3nu7vVV1LheV+aXWy+yyPlkdLK9z3vJc5zjmSTvJK4oi3WyuUREXV1EREIX0AuIABJOwAKxWALJ6hwvS0T25VDh2s/8AO7ePIZDyUY6HsNG6Xj1vVR50dE4FmY2SS7wPLf8ABSpjO+RYfw9UXB5BlA1IGH3pDuH1PQFUWKPMzhAz4VmcZqTLI2lj1PPx5BRRpnvIuGJxQRPzhoGdmeXaHa76DyKierl7aoe/gTs8Fl7zVyFskkjy+adxLnE7STtJWDU3oxDG2JvJaehpxBEGDkiIiSpqIiIQu6jnME4f7p2OHRSVovxSMP3kNqJD6uq8mzcmHg/y49D0Ci9ZC11WqRBIdh9k/ROMyuBjdsVErKZtRGWOGhVsLvb6O82qahq2iWnqGZZg+YcDzGwhV5xZYKzDt3koKsFzfahlA2SM4EfUcFveiXGrYhFh+7TAM9mkmcd3/jJ5cvhyUg4rw/QYjtbqKtbkRtilaO9G7mPqOKZhDqZ+U7LEQVEuD1Bil1Yflx91WxFmMU4euOHbgaWuj7pzMUzR3JBzB+nBYdWYIIuFsY5GytD2G4KIiLqWiIiEIiIhCIiIQiIiEIsxhKwVmIrvHQ0g1W+1NKRsjZxJ+g4phbD1xxFcBSUMfdGRlmd7EY5k/Tip8wrh+gw5a20VEzMnbLK4d6R3M/QcFHnmyCw3VNiuLMo25G6vPt3lem0W+js1qioaRoip6dmWZPmXE8zvJUH6UMU/aC8ltO8+rqTNsPJ54v8APh081sulrGolEuH7TLmz2auZp3/+MHlz+HNQ1dKrWJgjOwe0footPAI/3X7qPgWGvv8AqZv5Hb8+a8tZOZ5y/wB0bGjoulEXSbm5WuAsLIiIuLqIiIQiIiELKW6s18opT3vddzUw6ONIgibHacQTHUGTYatx3cmv6fm+PNQUshRV+rlHOcxwd+6fa8OGV6rcQw2KsjyPH5HgrYXW3W+8291JXQR1NPIMxn8iCNx6hQ/jLRtcrW59VaA+4UY26gH3sY6j3vEfBY/BOPLnh8Mp3H023fwXO2sH5Dw8N36qZMNYms+IIA+31TTKBm+B/dkZ4j6jMJ1rC3ZYlzK/BHkt60ft59h+aqt7gWkgggjYQeC+KxeJMIWG/az62jDKg/6iHuSeZ4+eaj296J7jCXPtNdDVM4RzDs3+Ge0H5J0XV1ScR0k4s85D37ev5so2RZu44UxJbyfSbNWADe5kfaN+LcwsNIx8biyRjmOG8OGRXVdxzRyi7HA+BuuKIuUbHyODI2Oe47g0ZlCcXFFm7dhTElwI9Gs1YQdznx9m34uyC26yaJ7jMWvu1dDSs4xwjtH+GewD5oUGoxOkpx+5IPqfQKN2guIa0Ek7ABxW+YO0bXK6OZVXcPt9GduoR97IOg93xPwUnYbwfYbCWyUVGH1A/wA+Y68nkdw8gF3YlxNZ8Pwl9wqmiUjNkDO9I/wH1OQSXZuSzlVxFLUO6Kiabnnz8gvZardb7Nb20lDBHTU8YzOXzJJ3nqVGmkfSGJWy2nD8x1D3Zqtp382s6fm+HNa1jbHlyxAH07T6Fbv4LXbXj854+G5R/W1+tnHAchxd+yYLGs1cpmFYA7P01Vq7e2/r2ldlxrNTOKI973ncli0RMveXG5Wya0NFgiIiQlIiIhCIiIQiIiEIiIhC7qaplgPcObeLTuWWobm1srJI5X08zTm1wdkQehCwaJxkrmpt8bX7qXcPaTr7b2tirhHc4RxkOrJl/MN/mCt7s+kzDVc1raqSaglO8TMJbn/M3P55KtkNRND7EhA5HaF7Irm7dJGD1aVJZUjms/WcNUlQbhuU92ntsrYUF1tleAaG4UtTn/Cla4/Ir0yxRyjKSNjxycM1U5lwpzvc5h6j9lkaa/1kIAp7xVQgbgyoc36p8TMKopOD3A3jl9R97qzXq+gzz9Bps/8Aab+y7o4o4hlHGxg5NGSrR9q71ll9pLhly9Of/wDS8tTf6yYEVF4qpgd4fUOd9UrpWJscJVDtHS+xVmK+62ygBNdcKWmy/iytafmVq140mYaog5tNLNXyDhCzJuf8zsvlmoAfcKcbnOeeg/deeS5u3RxAdXFNOqGhT6fhCFpvK4u9vyfdSZiHSdfbgHRUIjtsJ4xnWky/mO7yAUfV1zaZXySSvqJnHNzi7Mk9SViJqiaX25CRyGwLqUd9QTstNSYbBStyxtA8Pzuu6pqZZz3zk3g0bl0oijkk6lTwANkREXF1EREIRERCEREQhEREIRERCEREQhEREIRERCEREQhEREIRERCEREQhEREIRERCEREQhf/Z" alt="VLUMA">
+    <span class="brand-name">VLUMA</span>
+    <span class="brand-tag">Manual do Gerador de Orçamentos</span>
+  </a>
+  <button class="btn-print" onclick="window.print()">
+    🖨 Imprimir / Salvar PDF
+  </button>
+</div>
+
+<nav class="nav" id="nav">
+  <div class="nav-group">
+    <div class="nav-group-title">Introdução</div>
+    <a class="nav-a active" href="#intro"><span class="nav-num">✦</span>Visão Geral</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Preenchimento</div>
+    <a class="nav-a" href="#emitente"><span class="nav-num">1</span>Dados do Emitente</a>
+    <a class="nav-a" href="#cliente"><span class="nav-num">2</span>Dados do Cliente</a>
+    <a class="nav-a" href="#identificacao"><span class="nav-num">3</span>Identificação</a>
+    <a class="nav-a" href="#itens"><span class="nav-num">4</span>Itens / Serviços</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Financeiro</div>
+    <a class="nav-a" href="#configuracoes"><span class="nav-num">5</span>Configurações</a>
+    <a class="nav-a" href="#resumo"><span class="nav-num">6</span>Resumo e Valor</a>
+  </div>
+  <div class="nav-group">
+    <div class="nav-group-title">Exportação</div>
+    <a class="nav-a" href="#pdf"><span class="nav-num">7</span>Geração do PDF</a>
+    <a class="nav-a" href="#dicas"><span class="nav-num">✦</span>Dicas e Boas Práticas</a>
+  </div>
+</nav>
+
+<div class="layout">
+<div class="content">
+
+<!-- INTRO -->
+<section class="sec" id="intro">
+  <div class="sec-badge">✦ Introdução</div>
+  <h2>Gerador de Orçamentos VLUMA</h2>
+  <p class="lead">Ferramenta 100% online para criar orçamentos profissionais com cálculo automático de impostos, margem de lucro e desconto. Nenhum dado é armazenado — tudo processado localmente no seu navegador.</p>
+
+  <div class="mkp">
+    <div class="mkp-bar"><div class="mkp-dots"><div class="mkp-dot mkp-r"></div><div class="mkp-dot mkp-y"></div><div class="mkp-dot mkp-g"></div></div><div class="mkp-url">vluma.com.br/orcamento</div></div>
+    <div class="mkp-body">
+      <div class="m-topbar"><div class="m-brand">⬤ VLUMA <span style="font-size:9px;color:var(--text3);font-weight:400">· Gerador de Orçamentos</span></div><div class="m-btn">🖨 Gerar PDF</div></div>
+      <div style="display:grid;grid-template-columns:1fr 185px;gap:.625rem">
+        <div>
+          <div class="m-card gl" style="margin-bottom:.5rem">
+            <div style="display:flex;gap:.625rem;align-items:center">
+              <div style="width:42px;height:34px;background:var(--navy4);border:1.5px dashed var(--border2);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--text3)">Logo</div>
+              <div><div style="font-weight:700;font-size:10px;margin-bottom:1px">SUA EMPRESA LTDA</div><div style="font-size:8px;color:var(--text3);font-family:var(--mono)">CNPJ: 00.000.000/0001-00</div><div style="font-size:8px;color:var(--text2)">Salvador/BA</div></div>
+            </div>
+          </div>
+          <div class="m-card" style="margin-bottom:.5rem">
+            <div class="m-lbl">Itens / Serviços</div>
+            <table class="m-tbl">
+              <tr><th>#</th><th>Descrição</th><th>Qtd</th><th>Custo</th><th>C/Margem</th><th>Total</th></tr>
+              <tr><td>1</td><td>Mão de Obra</td><td>2</td><td>R$ 250</td><td>R$ 287</td><td class="gv">R$ 410</td></tr>
+              <tr><td>2</td><td>Deslocamento</td><td>1</td><td>R$ 90</td><td>R$ 103</td><td class="gv">R$ 147</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="m-sb">
+          <div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.5rem">Configurações</div>
+          <div class="m-cfgr"><span class="m-cfglbl">Imposto</span><div class="m-cfgrhs"><span class="m-cfginp">30</span><span style="font-size:8px;color:var(--text3)">%</span><div class="m-tog"></div></div></div>
+          <div class="m-cfgr"><span class="m-cfglbl">Margem</span><div class="m-cfgrhs"><span class="m-cfginp">15</span><span style="font-size:8px;color:var(--text3)">%</span></div></div>
+          <div style="margin-top:.5rem;font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.375rem">Resumo</div>
+          <div class="m-resr"><span style="color:var(--text2)">Custos</span><span style="font-family:var(--mono);font-size:9px">R$ 590</span></div>
+          <div class="m-resr"><span style="color:var(--text2)">Lucro</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber)">R$ 88</span></div>
+          <div class="m-resr"><span style="color:var(--text2)">Imposto</span><span style="font-family:var(--mono);font-size:9px;color:var(--red)">R$ 170</span></div>
+          <div class="m-totbox"><span style="font-size:8px;color:var(--text2)">Sugerido</span><span style="font-family:var(--mono);font-size:11px;color:var(--green);font-weight:700">R$ 848</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cl info"><div class="cl-icon">🔒</div><div><div class="cl-title">Privacidade total</div><p class="cl-text">Nenhuma informação digitada é enviada para servidores. Ao fechar a aba, os dados são apagados automaticamente.</p></div></div>
+
+  <table class="rtbl">
+    <thead><tr><th>Funcionalidade</th><th>Descrição</th></tr></thead>
+    <tbody>
+      <tr><td>✦ Cálculo automático</td><td>Imposto por dentro, margem sobre custo e desconto em tempo real</td></tr>
+      <tr><td>🖼 Upload de logo</td><td>Adicione a logo da sua empresa — aparece na tela e no PDF</td></tr>
+      <tr><td>📄 PDF profissional</td><td>Dois modos de exibição: com ou sem detalhamento de impostos</td></tr>
+      <tr><td>⌨ Atalhos de teclado</td><td>Enter avança campos, Delete limpa, botões ± nos campos numéricos</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="div">
+
+<!-- EMITENTE -->
+<section class="sec" id="emitente">
+  <div class="sec-badge">Seção 1</div>
+  <h2>Dados do Emitente</h2>
+  <p class="lead">O emitente é a sua empresa — quem está enviando o orçamento. Aparece no topo do PDF e identifica o prestador do serviço.</p>
+
+  <div class="mkp">
+    <div class="mkp-bar"><div class="mkp-dots"><div class="mkp-dot mkp-r"></div><div class="mkp-dot mkp-y"></div><div class="mkp-dot mkp-g"></div></div><div class="mkp-url">Dados do Emitente</div></div>
+    <div class="mkp-body">
+      <div class="m-card gl">
+        <div style="display:flex;gap:.875rem;align-items:flex-start;margin-bottom:.625rem">
+          <div style="width:66px;height:52px;background:var(--navy4);border:1.5px dashed var(--green);border-radius:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+            <div style="font-size:16px;opacity:.5">🖼</div><div style="font-size:7px;color:var(--text3)">Logo</div>
+          </div>
+          <div style="flex:1">
+            <div class="m-g2"><div><div class="m-lbl">Nome / Razão Social</div><div class="m-field foc">Sua Empresa Ltda</div></div><div><div class="m-lbl">CNPJ / CPF</div><div class="m-field">00.000.000/0001-00</div></div></div>
+            <div class="m-lbl" style="margin-top:5px">Endereço</div>
+            <div class="m-field">Rua Exemplo, 123 — CEP 00000-000, Salvador/BA</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <div style="flex:1"><div class="m-lbl">Telefone / WhatsApp</div><div class="m-field">(71) 99999-9999</div></div>
+          <div style="flex:1"><div class="m-lbl">E-mail</div><div class="m-field">contato@empresa.com.br</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-n">1</div><div><div class="step-t">Upload da Logo</div><div class="step-d">Clique na área pontilhada para selecionar PNG, JPG ou SVG. A logo aparece no cabeçalho do PDF.</div></div></div>
+    <div class="step"><div class="step-n">2</div><div><div class="step-t">Nome e CNPJ</div><div class="step-d">Preencha a razão social e CNPJ/CPF. Estes dados aparecem no bloco "Emitente" do PDF.</div></div></div>
+    <div class="step"><div class="step-n">3</div><div><div class="step-t">Contato</div><div class="step-d">Telefone e e-mail são exibidos no cabeçalho escuro do PDF, ao lado do número do orçamento.</div></div></div>
+  </div>
+
+  <div class="cl tip"><div class="cl-icon">💡</div><div><div class="cl-title">Dica — Navegação por teclado</div><p class="cl-text">Use <strong>Enter</strong> para avançar entre os campos sem usar o mouse.</p></div></div>
+</section>
+
+<hr class="div">
+
+<!-- CLIENTE -->
+<section class="sec" id="cliente">
+  <div class="sec-badge">Seção 2</div>
+  <h2>Dados do Cliente</h2>
+  <p class="lead">O cliente é o tomador do serviço — quem vai receber o orçamento. Aparece no bloco "Cliente / Tomador" do PDF.</p>
+
+  <div class="mkp">
+    <div class="mkp-bar"><div class="mkp-dots"><div class="mkp-dot mkp-r"></div><div class="mkp-dot mkp-y"></div><div class="mkp-dot mkp-g"></div></div><div class="mkp-url">Dados do Cliente</div></div>
+    <div class="mkp-body">
+      <div class="m-card al">
+        <div class="m-g2"><div><div class="m-lbl">Razão Social / Nome</div><div class="m-field foc">Cliente S.A.</div></div><div><div class="m-lbl">CNPJ / CPF</div><div class="m-field">00.000.000/0001-00</div></div></div>
+        <div style="margin-top:5px"><div class="m-lbl">Endereço</div><div class="m-field">Av. Principal, 500, Centro — Salvador/BA</div></div>
+        <div class="m-g2" style="margin-top:5px"><div><div class="m-lbl">Responsável</div><div class="m-field">João da Silva</div></div><div><div class="m-lbl">E-mail / Telefone</div><div class="m-field">joao@cliente.com.br</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="rtbl">
+    <thead><tr><th>Campo</th><th>Obrigatório</th><th>Aparece no PDF</th></tr></thead>
+    <tbody>
+      <tr><td>Razão Social / Nome</td><td><span class="tag tg">Sim</span></td><td><span class="tag tg">Sim</span></td></tr>
+      <tr><td>CNPJ / CPF</td><td><span class="tag ta">Opcional</span></td><td><span class="tag tg">Sim</span></td></tr>
+      <tr><td>Endereço</td><td><span class="tag ta">Opcional</span></td><td><span class="tag tg">Sim</span></td></tr>
+      <tr><td>Responsável</td><td><span class="tag ta">Opcional</span></td><td><span class="tag tg">Sim</span></td></tr>
+      <tr><td>E-mail / Telefone</td><td><span class="tag ta">Opcional</span></td><td><span class="tag tr">Não</span></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="div">
+
+<!-- IDENTIFICAÇÃO -->
+<section class="sec" id="identificacao">
+  <div class="sec-badge">Seção 3</div>
+  <h2>Identificação do Orçamento</h2>
+  <p class="lead">Número, datas e título. O sistema preenche automaticamente a data de emissão e sugere validade de 30 dias.</p>
+
+  <div class="mkp">
+    <div class="mkp-bar"><div class="mkp-dots"><div class="mkp-dot mkp-r"></div><div class="mkp-dot mkp-y"></div><div class="mkp-dot mkp-g"></div></div><div class="mkp-url">Identificação do Orçamento</div></div>
+    <div class="mkp-body">
+      <div class="m-card">
+        <div class="m-g3"><div><div class="m-lbl">Número</div><div class="m-field foc">ORC-2026-001</div></div><div><div class="m-lbl">Data de Emissão</div><div class="m-field">14/05/2026</div></div><div><div class="m-lbl">Válido até</div><div class="m-field">13/06/2026</div></div></div>
+        <div style="margin-top:6px"><div class="m-lbl">Título / Objeto</div><div class="m-field">Instalação de sistema de monitoramento — Loja Centro</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cl tip"><div class="cl-icon">💡</div><div><div class="cl-title">Numeração sequencial</div><p class="cl-text">O campo Número inicia com <strong>ORC-[ano]-001</strong>. Personalize para o padrão da sua empresa: <strong>PROP-2026-042</strong> ou <strong>INF-001/2026</strong>.</p></div></div>
+</section>
+
+<hr class="div">
+
+<!-- ITENS -->
+<section class="sec" id="itens">
+  <div class="sec-badge">Seção 4</div>
+  <h2>Itens / Serviços</h2>
+  <p class="lead">O coração do orçamento. Cada linha representa um custo real. O sistema calcula automaticamente margem, imposto, lucro e valor total a cobrar.</p>
+
+  <div class="mkp">
+    <div class="mkp-bar"><div class="mkp-dots"><div class="mkp-dot mkp-r"></div><div class="mkp-dot mkp-y"></div><div class="mkp-dot mkp-g"></div></div><div class="mkp-url">Tabela de Itens / Serviços</div></div>
+    <div class="mkp-body">
+      <div class="m-card">
+        <table class="m-tbl">
+          <tr><th style="width:20px">#</th><th>Descrição</th><th style="width:70px">Qtd</th><th>R$ Unit.</th><th>Custo Total</th><th>C/Margem</th><th>C/Imposto</th><th>Lucro</th><th>Total</th><th></th></tr>
+          <tr>
+            <td>1</td><td>Mão de obra técnica</td>
+            <td><div class="m-spin"><div class="m-sbtn">-</div><div class="m-sinp">2</div><div class="m-sbtn">+</div></div></td>
+            <td><span style="color:var(--text3);font-size:8px">R$</span> 250,00</td>
+            <td>R$ 500,00</td><td>R$ 575,00</td><td class="rv">R$ 246,43</td><td class="av">R$ 75,00</td><td class="gv">R$ 821,43</td><td style="color:var(--text3)">🗑</td>
+          </tr>
+          <tr>
+            <td>2</td><td>Deslocamento</td>
+            <td><div class="m-spin"><div class="m-sbtn">-</div><div class="m-sinp">1</div><div class="m-sbtn">+</div></div></td>
+            <td><span style="color:var(--text3);font-size:8px">R$</span> 90,00</td>
+            <td>R$ 90,00</td><td>R$ 103,50</td><td class="rv">R$ 44,36</td><td class="av">R$ 13,50</td><td class="gv">R$ 147,86</td><td style="color:var(--text3)">🗑</td>
+          </tr>
+        </table>
+        <div style="display:flex;justify-content:flex-end;border-top:1px solid var(--border);padding-top:6px;font-size:9px;font-family:var(--mono);gap:0">
+          <div style="text-align:right;padding:0 7px"><div style="font-size:7px;color:var(--text3);margin-bottom:1px">Custo Total</div><div>R$ 590,00</div></div>
+          <div style="text-align:right;padding:0 7px"><div style="font-size:7px;color:var(--text3);margin-bottom:1px">C/ Margem</div><div>R$ 678,50</div></div>
+          <div style="text-align:right;padding:0 7px"><div style="font-size:7px;color:var(--text3);margin-bottom:1px">C/ Imposto</div><div style="color:var(--red)">R$ 290,79</div></div>
+          <div style="text-align:right;padding:0 7px"><div style="font-size:7px;color:var(--text3);margin-bottom:1px">Lucro</div><div style="color:var(--amber)">R$ 88,50</div></div>
+          <div style="text-align:right;padding:0 7px"><div style="font-size:7px;color:var(--text3);margin-bottom:1px">Total a Cobrar</div><div style="color:var(--green);font-weight:700;font-size:12px">R$ 969,29</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="cl calc"><div class="cl-icon">🧮</div><div><div class="cl-title">Como as colunas são calculadas</div><p class="cl-text">Cada coluna representa uma etapa do cálculo, partindo do custo real até o preço ao cliente.</p></div></div>
+
+  <div class="fml">
+    <div class="fml-title">Exemplo: Custo R$ 250,00 · Qtd 2 · Margem 15% · Imposto 30%</div>
+    <div class="fml-row"><span class="fml-lbl">Custo Total</span><span class="fml-eq">= 250,00 × 2</span><span class="fml-val">R$ 500,00</span></div>
+    <div class="fml-row"><span class="fml-lbl">C/ Margem</span><span class="fml-eq">= 500,00 × (1 + 15%)</span><span class="fml-val">R$ 575,00</span></div>
+    <div class="fml-row"><span class="fml-lbl">Total (preço ao cliente)</span><span class="fml-eq">= 575,00 ÷ (1 − 30%)</span><span class="fml-val">R$ 821,43</span></div>
+    <div class="fml-row"><span class="fml-lbl">C/ Imposto</span><span class="fml-eq">= 821,43 − 575,00</span><span class="fml-val" style="color:var(--red)">R$ 246,43</span></div>
+    <div class="fml-row"><span class="fml-lbl">Lucro</span><span class="fml-eq">= 575,00 − 500,00</span><span class="fml-val" style="color:var(--amber)">R$ 75,00</span></div>
+  </div>
+
+  <table class="rtbl">
+    <thead><tr><th>Ação</th><th>Como fazer</th></tr></thead>
+    <tbody>
+      <tr><td>Adicionar item</td><td>Clique em <strong>+ Adicionar item</strong> no rodapé da tabela</td></tr>
+      <tr><td>Remover item</td><td>Clique no ícone 🗑 ao final da linha</td></tr>
+      <tr><td>Ajustar quantidade</td><td>Botões <strong>−</strong> e <strong>+</strong> ou digitação direta no campo Qtd</td></tr>
+      <tr><td>Digitar custo</td><td>Campo aceita vírgula: <strong>1.500,00</strong> — formata ao sair do campo</td></tr>
+      <tr><td>Limpar campo</td><td>Tecla <strong>Delete</strong> apaga o valor do campo selecionado</td></tr>
+      <tr><td>Navegar campos</td><td>Tecla <strong>Enter</strong> avança para o próximo campo</td></tr>
+    </tbody>
+  </table>
+
+  <div class="cl warn"><div class="cl-icon">⚠️</div><div><div class="cl-title">Atenção</div><p class="cl-text">Itens com Custo Unit. em branco ou zero <strong>não são incluídos no PDF</strong>. Preencha o custo antes de gerar o documento.</p></div></div>
+</section>
+
+<hr class="div">
+
+<!-- CONFIGURAÇÕES -->
+<section class="sec" id="configuracoes">
+  <div class="sec-badge">Seção 5</div>
+  <h2>Configurações Financeiras</h2>
+  <p class="lead">Defina imposto, margem e desconto. Todas as alterações recalculam a tabela em tempo real.</p>
+
+  <div class="mkp">
+    <div class="mkp-bar"><div class="mkp-dots"><div class="mkp-dot mkp-r"></div><div class="mkp-dot mkp-y"></div><div class="mkp-dot mkp-g"></div></div><div class="mkp-url">Sidebar — Configurações</div></div>
+    <div class="mkp-body">
+      <div class="m-sb" style="max-width:280px;margin:0 auto">
+        <div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.625rem">Configurações</div>
+        <div class="m-cfgr">
+          <span class="m-cfglbl">Imposto (%)</span>
+          <div class="m-cfgrhs"><div class="m-sbtn" style="width:19px;height:23px;border-radius:4px">-</div><span class="m-cfginp" style="width:38px">30</span><div class="m-sbtn" style="width:19px;height:23px;border-radius:4px">+</div><div class="m-tog" style="margin-left:3px"></div><span style="font-size:8px;color:var(--text3)">PDF</span></div>
+        </div>
+        <div class="m-cfgr">
+          <span class="m-cfglbl">Margem (%)</span>
+          <div class="m-cfgrhs"><div class="m-sbtn" style="width:19px;height:23px;border-radius:4px">-</div><span class="m-cfginp" style="width:38px">15</span><div class="m-sbtn" style="width:19px;height:23px;border-radius:4px">+</div></div>
+        </div>
+        <div style="padding:6px 0;border-top:1px solid var(--border);margin-top:3px">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:5px"><span class="m-cfglbl">Desconto</span><div style="display:flex;align-items:center;gap:3px"><div class="m-tog-off"></div><span style="font-size:8px;color:var(--text3)">PDF</span></div></div>
+          <div style="display:flex;gap:4px;align-items:center">
+            <div style="padding:3px 8px;border-radius:4px;background:var(--purple-dim);border:1px solid var(--purple);color:var(--purple);font-size:9px;font-weight:700">%</div>
+            <div style="padding:3px 8px;border-radius:4px;background:var(--navy4);border:1px solid var(--border2);color:var(--text2);font-size:9px">R$</div>
+            <div class="m-field" style="flex:1;margin:0;padding:3px 6px;font-size:10px;text-align:right">10</div>
+          </div>
+          <div style="text-align:right;font-size:10px;color:var(--purple);font-family:var(--mono);margin-top:3px">- R$ 96,93</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <table class="rtbl">
+    <thead><tr><th>Campo</th><th>Função</th><th>Toggle PDF</th></tr></thead>
+    <tbody>
+      <tr><td>Imposto (%)</td><td>Percentual de tributos sobre a receita bruta (ISS, PIS, COFINS etc). Calculado <strong>por dentro</strong> — já embutido no preço ao cliente.</td><td><span class="tag tg">Disponível</span> — exibe detalhamento por item no PDF</td></tr>
+      <tr><td>Margem (%)</td><td>Percentual de lucro sobre o custo. Calculado antes do imposto para garantir que o lucro não seja corroído pelos tributos.</td><td><span class="tag tr">Não disponível</span> — margem é informação interna</td></tr>
+      <tr><td>Desconto</td><td>Redução em % ou R$ aplicada sobre o total. Escolha o tipo com os botões <strong>%</strong> e <strong>R$</strong>.</td><td><span class="tag tg">Disponível</span> — exibe subtotal e desconto no PDF</td></tr>
+    </tbody>
+  </table>
+
+  <div class="cl calc"><div class="cl-icon">📐</div><div><div class="cl-title">Por que imposto por dentro?</div><p class="cl-text">No Brasil, impostos sobre serviços incidem sobre a <strong>receita bruta</strong>. Usando <em>÷ (1 − alíquota)</em>, garantimos que após pagar o governo, o valor restante cobre exatamente custo + lucro planejado. Exemplo: custo R$ 90,00 com imposto 30% → cobrar R$ 128,57 → pagar R$ 38,57 de imposto → sobra exatamente R$ 90,00.</p></div></div>
+</section>
+
+<hr class="div">
+
+<!-- RESUMO -->
+<section class="sec" id="resumo">
+  <div class="sec-badge">Seção 6</div>
+  <h2>Resumo e Valor a Cobrar</h2>
+  <p class="lead">O resumo consolida todos os valores. O sistema sugere o valor mínimo a cobrar e você pode ajustar verificando o impacto em tempo real.</p>
+
+  <div class="mkp">
+    <div class="mkp-bar"><div class="mkp-dots"><div class="mkp-dot mkp-r"></div><div class="mkp-dot mkp-y"></div><div class="mkp-dot mkp-g"></div></div><div class="mkp-url">Sidebar — Resumo e Valor a Cobrar</div></div>
+    <div class="mkp-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.625rem;max-width:480px;margin:0 auto">
+        <div class="m-sb">
+          <div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.5rem">Resumo</div>
+          <div class="m-resr"><span style="color:var(--text2);font-size:9px">Total de custos</span><span style="font-family:var(--mono);font-size:9px">R$ 590,00</span></div>
+          <div class="m-resr"><span style="color:var(--text2);font-size:9px">Lucro total</span><span style="font-family:var(--mono);font-size:9px;color:var(--amber)">R$ 88,50</span></div>
+          <div class="m-resr"><span style="color:var(--text2);font-size:9px">Imposto total</span><span style="font-family:var(--mono);font-size:9px;color:var(--red)">R$ 290,79</span></div>
+          <div class="m-resr"><span style="color:var(--text2);font-size:9px">Desconto</span><span style="font-family:var(--mono);font-size:9px;color:var(--purple)">- R$ 96,93</span></div>
+          <div class="m-resr" style="border-bottom:none"><span style="color:var(--text2);font-size:9px">Valor sugerido</span><span style="font-family:var(--mono);font-size:10px;color:var(--green);font-weight:700">R$ 872,36</span></div>
+        </div>
+        <div>
+          <div class="m-sb" style="margin-bottom:.5rem">
+            <div style="font-size:8px;text-transform:uppercase;letter-spacing:.1em;color:var(--text3);margin-bottom:.4rem">Valor a Cobrar</div>
+            <div style="display:flex;justify-content:space-between;font-size:9px;margin-bottom:.35rem"><span style="color:var(--text2)">Sugerido</span><span style="color:var(--green);font-family:var(--mono);font-weight:700">R$ 872,36</span></div>
+            <div class="m-vcinp" style="font-size:10px;padding:.3rem .5rem"><span style="color:var(--text3);font-size:9px">R$</span>872,36</div>
+            <div style="background:var(--navy4);border:1px solid var(--border2);border-radius:5px;padding:3px;text-align:center;font-size:8px;color:var(--text2)">↺ Usar valor sugerido</div>
+          </div>
+          <div class="m-ok" style="font-size:9px"><span style="color:var(--text2)">Resultado</span><span style="color:var(--green);font-family:var(--mono);font-weight:700">+ R$ 88,50</span></div>
+          <div style="font-size:8px;color:var(--text3);text-align:center;margin-top:3px">Lucro real de 15% sobre os custos</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="steps">
+    <div class="step"><div class="step-n">1</div><div><div class="step-t">Valor sugerido</div><div class="step-d">Calculado automaticamente — mínimo para cobrir custos + imposto + margem + desconto sem prejuízo.</div></div></div>
+    <div class="step"><div class="step-n">2</div><div><div class="step-t">Ajuste manual</div><div class="step-d">Digite um valor diferente. O resultado mostra em tempo real o lucro ou prejuízo e o percentual real de lucro.</div></div></div>
+    <div class="step"><div class="step-n">3</div><div><div class="step-t">Usar valor sugerido</div><div class="step-d">Clique em <strong>↺ Usar valor sugerido</strong> para voltar ao valor calculado pelo sistema.</div></div></div>
+  </div>
+</section>
+
+<hr class="div">
+
+<!-- PDF -->
+<section class="sec" id="pdf">
+  <div class="sec-badge">Seção 7</div>
+  <h2>Geração do PDF</h2>
+  <p class="lead">Clique em <strong>Gerar PDF</strong> no canto superior direito. O documento é gerado e baixado automaticamente. Dois modos disponíveis.</p>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-bottom:1.75rem">
+    <div>
+      <div style="font-weight:700;font-size:13px;margin-bottom:.625rem;display:flex;align-items:center;gap:5px"><span class="tag tb">Toggle OFF</span> Sem imposto detalhado</div>
+      <div class="pp">
+        <div class="pp-hd">
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;background:#1c2640;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">⬤</div><div style="font-weight:800;font-size:10px;color:#3ecf6e">Minha Empresa</div></div>
+          <div><div style="font-weight:800;font-size:9px;color:#3ecf6e">ORCAMENTO</div><div style="font-size:7px;color:#a0b4c8;text-align:right">ORC-2026-001</div></div>
+        </div>
+        <div class="pp-body" style="padding:.75rem .875rem">
+          <div style="font-size:8px;color:#64748b;margin-bottom:.625rem">Emitido em 14/05/2026 &nbsp; Válido até 13/06/2026</div>
+          <div class="pp-blocks" style="gap:.5rem">
+            <div class="pp-block" style="padding:.5rem"><div style="font-size:7px;font-weight:800;color:#2d8ef5;margin-bottom:3px">EMITENTE</div><div style="font-weight:700;font-size:9px;color:#0f172a">Minha Empresa Ltda</div><div style="font-size:7px;color:#64748b">CNPJ: 00.000.000/0001-00</div></div>
+            <div class="pp-block" style="padding:.5rem"><div style="font-size:7px;font-weight:800;color:#27a355;margin-bottom:3px">CLIENTE</div><div style="font-weight:700;font-size:9px;color:#0f172a">Cliente S.A.</div><div style="font-size:7px;color:#64748b">Resp: João da Silva</div></div>
+          </div>
+          <table class="pp-tbl" style="font-size:8px">
+            <tr><th>#</th><th>Descrição</th><th>Qtd</th><th>Total</th></tr>
+            <tr><td>1</td><td>Mão de obra</td><td>2</td><td>R$ 821,43</td></tr>
+            <tr><td>2</td><td>Deslocamento</td><td>1</td><td>R$ 147,86</td></tr>
+          </table>
+          <div style="display:flex;justify-content:flex-end"><div class="pp-tot" style="padding:.4rem .6rem"><div style="font-size:7px;font-weight:700;color:#fff">TOTAL A PAGAR</div><div style="font-size:10px;font-weight:700;color:#3ecf6e;font-family:monospace">R$ 872,36</div></div></div>
+        </div>
+        <div class="pp-ft" style="padding:.3rem .875rem"><span>Minha Empresa</span><span style="color:#3ecf6e">vluma.com.br</span></div>
+      </div>
+    </div>
+    <div>
+      <div style="font-weight:700;font-size:13px;margin-bottom:.625rem;display:flex;align-items:center;gap:5px"><span class="tag tg">Toggle ON</span> Com imposto detalhado</div>
+      <div class="pp">
+        <div class="pp-hd">
+          <div style="display:flex;align-items:center;gap:8px"><div style="width:28px;height:28px;background:#1c2640;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px">⬤</div><div style="font-weight:800;font-size:10px;color:#3ecf6e">Minha Empresa</div></div>
+          <div><div style="font-weight:800;font-size:9px;color:#3ecf6e">ORCAMENTO</div><div style="font-size:7px;color:#a0b4c8;text-align:right">ORC-2026-001</div></div>
+        </div>
+        <div class="pp-body" style="padding:.75rem .875rem">
+          <div style="font-size:8px;color:#64748b;margin-bottom:.625rem">Emitido em 14/05/2026 &nbsp; Válido até 13/06/2026</div>
+          <div class="pp-blocks" style="gap:.5rem">
+            <div class="pp-block" style="padding:.5rem"><div style="font-size:7px;font-weight:800;color:#2d8ef5;margin-bottom:3px">EMITENTE</div><div style="font-weight:700;font-size:9px;color:#0f172a">Minha Empresa Ltda</div><div style="font-size:7px;color:#64748b">CNPJ: 00.000.000/0001-00</div></div>
+            <div class="pp-block" style="padding:.5rem"><div style="font-size:7px;font-weight:800;color:#27a355;margin-bottom:3px">CLIENTE</div><div style="font-weight:700;font-size:9px;color:#0f172a">Cliente S.A.</div><div style="font-size:7px;color:#64748b">Resp: João da Silva</div></div>
+          </div>
+          <table class="pp-tbl" style="font-size:8px">
+            <tr><th>#</th><th>Descrição</th><th>Qtd</th><th>Vl. Produto</th><th>Imposto</th><th>Total</th></tr>
+            <tr><td>1</td><td>Mão de obra</td><td>2</td><td>R$ 575,00</td><td>R$ 246,43</td><td>R$ 821,43</td></tr>
+            <tr><td>2</td><td>Deslocamento</td><td>1</td><td>R$ 103,50</td><td>R$ 44,36</td><td>R$ 147,86</td></tr>
+          </table>
+          <div style="display:flex;justify-content:flex-end;flex-direction:column;align-items:flex-end;gap:3px">
+            <div style="background:#fff;border:1px solid #e2e8f0;border-radius:4px;padding:3px 7px;font-size:8px;min-width:190px;display:flex;justify-content:space-between"><span style="color:#64748b">(-) Desconto (10%)</span><span>- R$ 96,93</span></div>
+            <div class="pp-tot" style="padding:.4rem .6rem"><div style="font-size:7px;font-weight:700;color:#fff">TOTAL A PAGAR</div><div style="font-size:10px;font-weight:700;color:#3ecf6e;font-family:monospace">R$ 872,36</div></div>
+          </div>
+        </div>
+        <div class="pp-ft" style="padding:.3rem .875rem"><span>Minha Empresa</span><span style="color:#3ecf6e">vluma.com.br</span></div>
+      </div>
+    </div>
+  </div>
+
+  <table class="rtbl">
+    <thead><tr><th>Toggle</th><th>Desligado (OFF)</th><th>Ligado (ON)</th></tr></thead>
+    <tbody>
+      <tr><td>Imposto PDF</td><td>Tabela mostra apenas <strong>Total</strong> por item — cliente não vê composição interna</td><td>Tabela mostra <strong>Vl. Produto + Imposto + Total</strong> por item</td></tr>
+      <tr><td>Desconto PDF</td><td>Valor final já com desconto embutido — cliente não vê o desconto</td><td>Exibe <strong>Subtotal, (-) Desconto e Total</strong> abaixo da tabela</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<hr class="div">
+
+<!-- DICAS -->
+<section class="sec" id="dicas">
+  <div class="sec-badge">✦ Boas Práticas</div>
+  <h2>Dicas e Boas Práticas</h2>
+  <p class="lead">Recomendações para tirar o máximo do sistema e garantir orçamentos precisos e profissionais.</p>
+
+  <div class="cl tip"><div class="cl-icon">✅</div><div><div class="cl-title">Comece pelo imposto e margem</div><p class="cl-text">Configure as porcentagens antes de inserir os itens — os valores já aparecem calculados corretamente desde o início.</p></div></div>
+  <div class="cl tip"><div class="cl-icon">🎯</div><div><div class="cl-title">Use o custo real — não o preço ao cliente</div><p class="cl-text">O campo <strong>Custo Unit.</strong> deve ser o valor que você paga. O sistema calcula automaticamente quanto cobrar do cliente.</p></div></div>
+  <div class="cl warn"><div class="cl-icon">⚠️</div><div><div class="cl-title">Não recarregue a página durante o preenchimento</div><p class="cl-text">Os dados não são salvos. Ao recarregar, todos os campos serão resetados. Gere o PDF antes de fechar ou sair da aba.</p></div></div>
+  <div class="cl info"><div class="cl-icon">🖨️</div><div><div class="cl-title">Salvando este manual como PDF</div><p class="cl-text">Clique em <strong>Imprimir / Salvar PDF</strong> no topo. No diálogo de impressão, selecione <em>Salvar como PDF</em> como destino.</p></div></div>
+
+  <table class="rtbl">
+    <thead><tr><th>Atalho</th><th>Ação</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag tb">Enter</span></td><td>Avança para o próximo campo de preenchimento</td></tr>
+      <tr><td><span class="tag tb">Delete</span></td><td>Limpa o valor do campo selecionado</td></tr>
+      <tr><td><span class="tag tb">− / +</span></td><td>Diminui / aumenta valores numéricos (Qtd, Imposto, Margem)</td></tr>
+      <tr><td><span class="tag tb">Tab</span></td><td>Navegação padrão entre campos</td></tr>
+    </tbody>
+  </table>
+
+  <a href="https://vluma.com.br" target="_blank" style="text-decoration:none;display:block">
+  <div style="background:var(--navy3);border:1px solid var(--border2);border-radius:11px;padding:1.5rem;text-align:center;margin-top:2rem;transition:border-color .15s;cursor:pointer" onmouseover="this.style.borderColor='var(--green)'" onmouseout="this.style.borderColor='var(--border2)'">
+    <img src="data:image/png;base64,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" style="width:48px;height:48px;border-radius:50%;object-fit:contain;margin-bottom:.5rem;display:block;margin-left:auto;margin-right:auto">
+    <a href="https://vluma.com.br" target="_blank" style="text-decoration:none;display:block">
+      <div style="font-weight:800;font-size:18px;margin-bottom:.375rem;background:linear-gradient(135deg,var(--green),var(--amber));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;letter-spacing:-.3px">VLUMA</div>
+      <div style="font-size:12.5px;color:var(--text2)">Gerador de Orçamentos · Manual do Usuário · v1.0</div>
+      <div style="font-size:12px;color:var(--green);margin-top:.375rem">vluma.com.br →</div>
+    </a>
+  </div>
+  </a>
+</section>
+
+</div>
+</div>
+
+<script>
+window.addEventListener("scroll",()=>{
+  const e=document.documentElement;
+  document.getElementById("prog").style.width=(e.scrollTop/(e.scrollHeight-e.clientHeight)*100)+"%";
+});
+const secs=document.querySelectorAll(".sec");
+const navAs=document.querySelectorAll(".nav-a");
+new IntersectionObserver(entries=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting){
+      const id=e.target.id;
+      navAs.forEach(n=>n.classList.toggle("active",n.getAttribute("href")==="#"+id));
+    }
+  });
+},{threshold:0.25}).observe&&secs.forEach(s=>new IntersectionObserver(entries=>{
+  entries.forEach(e=>{if(e.isIntersecting){const id=e.target.id;navAs.forEach(n=>n.classList.toggle("active",n.getAttribute("href")==="#"+id));}}); },{threshold:0.25}).observe(s));
+</script>
+</body>
+</html>
