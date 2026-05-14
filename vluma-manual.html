@@ -402,6 +402,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:2.5rem 0}
     </div>
   </div>
 
+  <div class="cl tip"><div class="cl-icon">☑️</div><div><div class="cl-title">Controle por item — Imp e Marg</div><p class="cl-text">Cada item tem dois checkboxes independentes. <strong>Imp</strong> controla se o imposto global é aplicado naquele item. <strong>Marg</strong> controla se a margem de lucro é aplicada. Por padrão ambos estão marcados. Desmarque para itens de repasse direto ao cliente, onde você não quer adicionar imposto ou margem.</p></div></div>
+
   <div class="cl calc"><div class="cl-icon">🧮</div><div><div class="cl-title">Como as colunas são calculadas</div><p class="cl-text">Cada coluna representa uma etapa do cálculo, partindo do custo real até o preço ao cliente.</p></div></div>
 
   <div class="fml">
@@ -420,6 +422,8 @@ hr.div{border:none;border-top:1px solid var(--border);margin:2.5rem 0}
       <tr><td>Remover item</td><td>Clique no ícone 🗑 ao final da linha</td></tr>
       <tr><td>Ajustar quantidade</td><td>Botões <strong>−</strong> e <strong>+</strong> ou digitação direta no campo Qtd</td></tr>
       <tr><td>Digitar custo</td><td>Campo aceita vírgula: <strong>1.500,00</strong> — formata ao sair do campo</td></tr>
+      <tr><td>Imposto por item <span class="tag tg">Imp ✓</span></td><td>Checkbox na coluna <strong>Imp</strong> — marcado aplica o imposto global naquele item; desmarcado remove o imposto daquele item individualmente</td></tr>
+      <tr><td>Margem por item <span class="tag ta">Marg ✓</span></td><td>Checkbox na coluna <strong>Marg</strong> — marcado aplica a margem global naquele item; desmarcado o item não recebe margem (útil para itens de repasse)</td></tr>
       <tr><td>Limpar campo</td><td>Tecla <strong>Delete</strong> apaga o valor do campo selecionado</td></tr>
       <tr><td>Navegar campos</td><td>Tecla <strong>Enter</strong> avança para o próximo campo</td></tr>
     </tbody>
